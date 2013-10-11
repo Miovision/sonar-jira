@@ -21,34 +21,37 @@ package org.sonar.plugins.jira;
 
 public final class JiraConstants {
 
-  private JiraConstants() {
-  }
+    private JiraConstants() {
+    }
 
-  public static final String SONAR_ISSUE_DATA_PROPERTY_KEY = "jira-issue-key";
+    public static final String SONAR_ISSUE_DATA_PROPERTY_KEY = "jira-issue-key";
 
-  // ===================== PLUGIN PROPERTIES =====================
+    // ===================== PLUGIN PROPERTIES =====================
 
-  public static final String SERVER_URL_PROPERTY = "sonar.jira.url";
+    public static final String SERVER_URL_PROPERTY = "sonar.jira.url";
 
-  public static final String SOAP_BASE_URL_PROPERTY = "sonar.jira.soap.url";
-  public static final String SOAP_BASE_URL_DEF_VALUE = "/rpc/soap/jirasoapservice-v2";
+    public static final String SOAP_BASE_URL_PROPERTY = "sonar.jira.soap.url";
+    public static final String SOAP_BASE_URL_DEF_VALUE = "/rpc/soap/jirasoapservice-v2";
 
-  public static final String USERNAME_PROPERTY = "sonar.jira.login.secured";
+    public static final String REST_BASE_URL_PROPERTY = "sonar.jira.rest.url";
+    public static final String REST_BASE_URL_DEF_VALUE = "/rpc/soap/jirasoapservice-v2";
 
-  public static final String PASSWORD_PROPERTY = "sonar.jira.password.secured";
+    public static final String USERNAME_PROPERTY = "sonar.jira.login.secured";
 
-  public static final String JIRA_PROJECT_KEY_PROPERTY = "sonar.jira.project.key";
+    public static final String PASSWORD_PROPERTY = "sonar.jira.password.secured";
 
-  public static final String FILTER_PROPERTY = "sonar.jira.url.param";
+    public static final String JIRA_PROJECT_KEY_PROPERTY = "sonar.jira.project.key";
 
-  public static final String JIRA_INFO_PRIORITY_ID = "sonar.jira.info.priority.id";
-  public static final String JIRA_MINOR_PRIORITY_ID = "sonar.jira.minor.priority.id";
-  public static final String JIRA_MAJOR_PRIORITY_ID = "sonar.jira.major.priority.id";
-  public static final String JIRA_CRITICAL_PRIORITY_ID = "sonar.jira.critical.priority.id";
-  public static final String JIRA_BLOCKER_PRIORITY_ID = "sonar.jira.blocker.priority.id";
+    public static final String FILTER_PROPERTY = "sonar.jira.url.param";
 
-  public static final String JIRA_ISSUE_TYPE_ID = "sonar.jira.issue.type.id";
+    public static final String JIRA_INFO_PRIORITY_ID = "sonar.jira.info.priority.id";
+    public static final String JIRA_MINOR_PRIORITY_ID = "sonar.jira.minor.priority.id";
+    public static final String JIRA_MAJOR_PRIORITY_ID = "sonar.jira.major.priority.id";
+    public static final String JIRA_CRITICAL_PRIORITY_ID = "sonar.jira.critical.priority.id";
+    public static final String JIRA_BLOCKER_PRIORITY_ID = "sonar.jira.blocker.priority.id";
 
-  public static final String JIRA_ISSUE_COMPONENT_ID = "sonar.jira.issue.component.id";
-  public static final String JIRA_ISSUE_COMPONENT_ID_BLANK = "<none>";
+    public static final String JIRA_ISSUE_TYPE_ID = "sonar.jira.issue.type.id";
+
+    public static final String JIRA_ISSUE_COMPONENT_ID = "sonar.jira.issue.component.id";
+    public static final String JIRA_ISSUE_COMPONENT_ID_BLANK = "<none>";
 }

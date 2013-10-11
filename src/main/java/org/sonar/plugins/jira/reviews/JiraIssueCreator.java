@@ -82,7 +82,7 @@ public class JiraIssueCreator implements ServerExtension {
     protected JiraSession createSession(Settings settings) {
 	String jiraUrl = settings.getString(JiraConstants.SERVER_URL_PROPERTY);
 	String baseUrl = settings
-		.getString(JiraConstants.SOAP_BASE_URL_PROPERTY);
+		.getString(JiraConstants.REST_BASE_URL_PROPERTY);
 	String completeUrl = jiraUrl + baseUrl;
 
 	// get handle to the JIRA SOAP Service from a client point of view
@@ -124,11 +124,13 @@ public class JiraIssueCreator implements ServerExtension {
 	try {
 	    res = issueClient.createIssue(issue).get();
 	} catch (InterruptedException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+
+	    throw new IllegalStateException("Exception during issue creation",
+		    e);
 	} catch (ExecutionException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+
+	    throw new IllegalStateException("Exception during issue creation",
+		    e);
 	}
 	return res;
 	/*
@@ -166,9 +168,6 @@ public class JiraIssueCreator implements ServerExtension {
 	long componentId = settings
 		.getLong(JiraConstants.JIRA_ISSUE_COMPONENT_ID);
 	if (!JiraConstants.JIRA_ISSUE_COMPONENT_ID_BLANK.equals(componentId)) {
-	    // RemoteComponent rc = new RemoteComponent();
-	    // rc.setId(componentId);
-	    // issue.setComponents(new RemoteComponent[] { rc });
 	    BasicComponent comp = null;
 	    try {
 		Iterable<BasicComponent> comps = prjClient
@@ -183,11 +182,11 @@ public class JiraIssueCreator implements ServerExtension {
 		// TODO: raise exception for component not found?
 		builder.setComponents(comp);
 	    } catch (InterruptedException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+		throw new IllegalStateException(
+			"Exception during components retrieval", e);
 	    } catch (ExecutionException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
+		throw new IllegalStateException(
+			"Exception during components retrieval", e);
 	    }
 	}
 	return builder.build();

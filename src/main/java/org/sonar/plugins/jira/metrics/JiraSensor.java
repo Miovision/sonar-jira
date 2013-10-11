@@ -82,29 +82,46 @@ public class JiraSensor implements Sensor {
     }
 
     public void analyse(Project project, SensorContext context) {
+	String jiraUrl = settings.getString(JiraConstants.SERVER_URL_PROPERTY);
+	String baseUrl = settings
+		.getString(JiraConstants.REST_BASE_URL_PROPERTY);
+	String completeUrl = jiraUrl + baseUrl;
+	JiraSession session = null;
+
 	try {
-	    JiraSession session = new JiraSession(new URL(getServerUrl()
-		    + "/rpc/soap/jirasoapservice-v2"));
-	    session.connect(getUsername(), getPassword());
-
-	    JiraRestClient service = session.getJiraRestClient();
-	    // String authToken = session.getAuthenticationToken();
-
-	    runAnalysis(context, service);
-
-	    session.disconnect();
-	} catch (RemoteException e) {
-	    LOG.error(
-		    "Error accessing Jira web service, please verify the parameters",
-		    e);
+	    session = new JiraSession(new URL(completeUrl));
 	} catch (MalformedURLException e) {
-	    LOG.error("The specified JIRA URL is not valid: " + getServerUrl(),
-		    e);
+	    throw new IllegalStateException(
+		    "Exception during JiraSoapService contruction", e);
 	}
+	try {
+	    session.connect(getUsername(), getPassword());
+	} catch (RemoteException e) {
+	    throw new IllegalStateException(
+		    "Exception during JiraSoapService contruction", e);
+	}
+
+	JiraRestClient service = session.getJiraRestClient();
+	// String authToken = session.getAuthenticationToken();
+
+	try {
+	    runAnalysis(context, service);
+	} catch (RemoteException e) {
+
+	    throw new IllegalStateException("Exception during analysis", e);
+	} catch (InterruptedException e) {
+
+	    throw new IllegalStateException("Exception during analysis", e);
+	} catch (ExecutionException e) {
+
+	    throw new IllegalStateException("Exception during analysis", e);
+	}
+
+	session.disconnect();
     }
 
     protected void runAnalysis(SensorContext context, JiraRestClient service)
-	    throws RemoteException {
+	    throws RemoteException, InterruptedException, ExecutionException {
 	Map<Long, String> priorities = collectPriorities(service);
 	Filter filter = findJiraFilter(service);
 	Map<Long, Integer> issuesByPriority = collectIssuesByPriority(service,
@@ -124,63 +141,47 @@ public class JiraSensor implements Sensor {
     }
 
     protected Map<Long, String> collectPriorities(JiraRestClient service)
-	    throws RemoteException {
+	    throws RemoteException, InterruptedException, ExecutionException {
 	Map<Long, String> priorities = Maps.newHashMap();
 
-	try {
-	    for (Priority priority : service.getMetadataClient()
-		    .getPriorities().get()) {
-		priorities.put(priority.getId(), priority.getName());
-	    }
-	} catch (InterruptedException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (ExecutionException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	for (Priority priority : service.getMetadataClient().getPriorities()
+		.get()) {
+	    priorities.put(priority.getId(), priority.getName());
 	}
+
 	return priorities;
     }
 
     protected Map<Long, Integer> collectIssuesByPriority(
-	    JiraRestClient service, Filter filter) throws RemoteException {
+	    JiraRestClient service, Filter filter) throws RemoteException,
+	    InterruptedException, ExecutionException {
 	Map<Long, Integer> issuesByPriority = Maps.newHashMap();
 	SearchResult result;
-	try {
-	    result = service.getSearchClient().searchJql(filter.getJql()).get();
-	    // RemoteIssue[] issues =
-	    // service.getIssuesFromFilter(filter.getId());
-	    for (Issue issue : result.getIssues()) {
-		Long priority = issue.getPriority().getId();
-		if (!issuesByPriority.containsKey(priority)) {
-		    issuesByPriority.put(priority, 1);
-		} else {
-		    issuesByPriority.put(priority,
-			    issuesByPriority.get(priority) + 1);
-		}
+
+	result = service.getSearchClient().searchJql(filter.getJql()).get();
+	// RemoteIssue[] issues =
+	// service.getIssuesFromFilter(filter.getId());
+	for (Issue issue : result.getIssues()) {
+	    Long priority = issue.getPriority().getId();
+	    if (!issuesByPriority.containsKey(priority)) {
+		issuesByPriority.put(priority, 1);
+	    } else {
+		issuesByPriority.put(priority,
+			issuesByPriority.get(priority) + 1);
 	    }
-	} catch (InterruptedException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
-	} catch (ExecutionException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
 	}
 
 	return issuesByPriority;
     }
 
     protected Filter findJiraFilter(JiraRestClient service)
-	    throws RemoteException {
+	    throws RemoteException, InterruptedException, ExecutionException {
 	Filter filter = null;
 	Iterable<Filter> filters = null;
 	SearchRestClient searchClient = service.getSearchClient();
-	try {
-	    filters = searchClient.getFavouriteFilters().get();
-	} catch (Exception e) {
-	    // for Jira prior to 3.13
-	    // filters = searchClient.getSavedFilters();
-	}
+
+	filters = searchClient.getFavouriteFilters().get();
+
 	for (Filter f : filters) {
 	    if (getFilterName().equals(f.getName())) {
 		filter = f;

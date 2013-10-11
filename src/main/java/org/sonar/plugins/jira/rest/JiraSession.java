@@ -68,7 +68,7 @@ public class JiraSession {
 	LOG.debug("Connected");
     }
 
-    public void disconnect() throws RemoteException {
+    public void disconnect() {
 	restClient = null;
     }
 
