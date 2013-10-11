@@ -24,6 +24,7 @@ import com.atlassian.jira.rpc.soap.client.RemoteAuthenticationException;
 import com.atlassian.jira.rpc.soap.client.RemoteComponent;
 import com.atlassian.jira.rpc.soap.client.RemoteIssue;
 import com.atlassian.jira.rpc.soap.client.RemotePermissionException;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -38,7 +39,7 @@ import org.sonar.api.rules.RuleFinder;
 import org.sonar.api.rules.RulePriority;
 import org.sonar.plugins.jira.JiraConstants;
 import org.sonar.plugins.jira.JiraPlugin;
-import org.sonar.plugins.jira.soap.JiraSoapSession;
+import org.sonar.plugins.jira.rest.JiraSession;
 
 import java.rmi.RemoteException;
 
@@ -82,7 +83,7 @@ public class JiraIssueCreatorTest {
 
   @Test
   public void shouldCreateSoapSession() throws Exception {
-    JiraSoapSession soapSession = jiraIssueCreator.createSoapSession(settings);
+    JiraSession soapSession = jiraIssueCreator.createSoapSession(settings);
     assertThat(soapSession.getWebServiceUrl().toString()).isEqualTo("http://my.jira.com/rpc/soap/jirasoapservice-v2");
   }
 
@@ -100,7 +101,7 @@ public class JiraIssueCreatorTest {
   @Test
   public void shouldFailToCreateIssueIfCantConnect() throws Exception {
     // Given that
-    JiraSoapSession soapSession = mock(JiraSoapSession.class);
+    JiraSession soapSession = mock(JiraSession.class);
     doThrow(RemoteException.class).when(soapSession).connect(anyString(), anyString());
 
     // Verify
@@ -156,7 +157,7 @@ public class JiraIssueCreatorTest {
     JiraSoapService jiraSoapService = mock(JiraSoapService.class);
     when(jiraSoapService.createIssue(anyString(), any(RemoteIssue.class))).thenReturn(issue);
 
-    JiraSoapSession soapSession = mock(JiraSoapSession.class);
+    JiraSession soapSession = mock(JiraSession.class);
     when(soapSession.getJiraSoapService()).thenReturn(jiraSoapService);
 
     // Verify
