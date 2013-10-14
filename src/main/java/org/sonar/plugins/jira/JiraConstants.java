@@ -34,7 +34,7 @@ public final class JiraConstants {
     public static final String SOAP_BASE_URL_DEF_VALUE = "/rpc/soap/jirasoapservice-v2";
 
     public static final String REST_BASE_URL_PROPERTY = "sonar.jira.rest.url";
-    public static final String REST_BASE_URL_DEF_VALUE = "/rpc/soap/jirasoapservice-v2";
+    public static final String REST_BASE_URL_DEF_VALUE = "/rest/api/2";
 
     public static final String USERNAME_PROPERTY = "sonar.jira.login.secured";
 
