@@ -19,11 +19,13 @@
  */
 package org.sonar.plugins.jira.reviews;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.rmi.RemoteException;
-import java.util.concurrent.ExecutionException;
-
+import com.atlassian.jira.rest.client.api.IssueRestClient;
+import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.api.ProjectRestClient;
+import com.atlassian.jira.rest.client.api.domain.BasicComponent;
+import com.atlassian.jira.rest.client.api.domain.BasicIssue;
+import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
+import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.CoreProperties;
@@ -39,14 +41,10 @@ import org.sonar.api.rules.RulePriority;
 import org.sonar.api.utils.SonarException;
 import org.sonar.plugins.jira.JiraConstants;
 import org.sonar.plugins.jira.rest.JiraSession;
-
-import com.atlassian.jira.rest.client.api.IssueRestClient;
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.api.ProjectRestClient;
-import com.atlassian.jira.rest.client.api.domain.BasicComponent;
-import com.atlassian.jira.rest.client.api.domain.BasicIssue;
-import com.atlassian.jira.rest.client.api.domain.input.IssueInput;
-import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.rmi.RemoteException;
+import java.util.concurrent.ExecutionException;
 
 /**
  * SOAP client class that is used for creating issues on a JIRA server
@@ -60,7 +58,7 @@ import com.atlassian.jira.rest.client.api.domain.input.IssueInputBuilder;
 	@Property(key = JiraConstants.JIRA_CRITICAL_PRIORITY_ID, defaultValue = "2", name = "JIRA priority id for CRITICAL", description = "JIRA priority id used to create issues for Sonar violations with severity CRITICAL. Default is 2 (Critical).", global = true, project = true, type = PropertyType.INTEGER),
 	@Property(key = JiraConstants.JIRA_BLOCKER_PRIORITY_ID, defaultValue = "1", name = "JIRA priority id for BLOCKER", description = "JIRA priority id used to create issues for Sonar violations with severity BLOCKER. Default is 1 (Blocker).", global = true, project = true, type = PropertyType.INTEGER),
 	@Property(key = JiraConstants.JIRA_ISSUE_TYPE_ID, defaultValue = "3", name = "Id of JIRA issue type", description = "JIRA issue type id used to create issues for Sonar violations. Default is 3 (= Task in a default JIRA installation).", global = true, project = true, type = PropertyType.INTEGER),
-	@Property(key = JiraConstants.JIRA_ISSUE_COMPONENT_ID, defaultValue = JiraConstants.JIRA_ISSUE_COMPONENT_ID_BLANK, name = "Id of JIRA component", description = "JIRA component id used to create issues for Sonar violations. By default no component is set.", global = false, project = true, type = PropertyType.INTEGER) })
+	@Property(key = JiraConstants.JIRA_ISSUE_COMPONENT_ID, defaultValue = "", name = "Id of JIRA component", description = "JIRA component id used to create issues for Sonar violations. By default no component is set.", global = false, project = true, type = PropertyType.INTEGER) })
 public class JiraIssueCreator implements ServerExtension {
 
     private static final String QUOTE = "\n{quote}\n";
@@ -81,19 +79,24 @@ public class JiraIssueCreator implements ServerExtension {
 
     protected JiraSession createSession(Settings settings) {
 	String jiraUrl = settings.getString(JiraConstants.SERVER_URL_PROPERTY);
-	String baseUrl = settings
-		.getString(JiraConstants.REST_BASE_URL_PROPERTY);
-	String completeUrl = jiraUrl + baseUrl;
 
 	// get handle to the JIRA SOAP Service from a client point of view
 	JiraSession soapSession = null;
 	try {
-	    soapSession = new JiraSession(new URL(completeUrl));
+	    soapSession = new JiraSession(new URL(jiraUrl));
 	} catch (MalformedURLException e) {
-	    LOG.error("The JIRA server URL is not a valid one: " + completeUrl,
+	    LOG.error("The JIRA server URL is not a valid one: " + jiraUrl,
 		    e);
 	    throw new IllegalStateException(
-		    "The JIRA server URL is not a valid one: " + completeUrl, e);
+		    "The JIRA server URL is not a valid one: " + jiraUrl, e);
+	}
+	try {
+		soapSession.connect(
+				settings.getString(JiraConstants.USERNAME_PROPERTY),
+				settings.getString(JiraConstants.PASSWORD_PROPERTY));
+	} catch (RemoteException e) {
+		throw new IllegalStateException(
+				"Exception during JiraSoapService contruction", e);
 	}
 	return soapSession;
     }
@@ -165,9 +168,9 @@ public class JiraIssueCreator implements ServerExtension {
 	builder.setPriorityId(sonarSeverityToJiraPriorityId(
 		RulePriority.valueOf(sonarIssue.severity()), settings));
 	builder.setDescription(generateIssueDescription(sonarIssue, settings));
-	long componentId = settings
-		.getLong(JiraConstants.JIRA_ISSUE_COMPONENT_ID);
-	if (!JiraConstants.JIRA_ISSUE_COMPONENT_ID_BLANK.equals(componentId)) {
+	if (settings.hasKey(JiraConstants.JIRA_ISSUE_COMPONENT_ID)) {
+		long componentId = settings
+			.getLong(JiraConstants.JIRA_ISSUE_COMPONENT_ID);
 	    BasicComponent comp = null;
 	    try {
 		Iterable<BasicComponent> comps = prjClient

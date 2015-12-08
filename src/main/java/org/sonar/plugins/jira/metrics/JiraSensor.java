@@ -20,12 +20,13 @@
 
 package org.sonar.plugins.jira.metrics;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.rmi.RemoteException;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
+import com.atlassian.jira.rest.client.api.JiraRestClient;
+import com.atlassian.jira.rest.client.api.SearchRestClient;
+import com.atlassian.jira.rest.client.api.domain.Filter;
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.jira.rest.client.api.domain.Priority;
+import com.atlassian.jira.rest.client.api.domain.SearchResult;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,14 +40,11 @@ import org.sonar.api.measures.PropertiesBuilder;
 import org.sonar.api.resources.Project;
 import org.sonar.plugins.jira.JiraConstants;
 import org.sonar.plugins.jira.rest.JiraSession;
-
-import com.atlassian.jira.rest.client.api.JiraRestClient;
-import com.atlassian.jira.rest.client.api.SearchRestClient;
-import com.atlassian.jira.rest.client.api.domain.Filter;
-import com.atlassian.jira.rest.client.api.domain.Issue;
-import com.atlassian.jira.rest.client.api.domain.Priority;
-import com.atlassian.jira.rest.client.api.domain.SearchResult;
-import com.google.common.collect.Maps;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.rmi.RemoteException;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 @Properties({ @Property(key = JiraConstants.FILTER_PROPERTY, defaultValue = "", name = "Filter name", description = "Case sensitive, example : SONAR-current-iteration", global = false, project = true, module = true) })
 public class JiraSensor implements Sensor {
@@ -83,13 +81,10 @@ public class JiraSensor implements Sensor {
 
     public void analyse(Project project, SensorContext context) {
 	String jiraUrl = settings.getString(JiraConstants.SERVER_URL_PROPERTY);
-	String baseUrl = settings
-		.getString(JiraConstants.REST_BASE_URL_PROPERTY);
-	String completeUrl = jiraUrl + baseUrl;
 	JiraSession session = null;
 
 	try {
-	    session = new JiraSession(new URL(completeUrl));
+	    session = new JiraSession(new URL(jiraUrl));
 	} catch (MalformedURLException e) {
 	    throw new IllegalStateException(
 		    "Exception during JiraSoapService contruction", e);

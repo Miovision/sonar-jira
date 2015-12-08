@@ -19,15 +19,13 @@
  */
 package org.sonar.plugins.jira.reviews;
 
-import java.rmi.RemoteException;
-
+import com.atlassian.jira.rest.client.api.domain.BasicIssue;
+import com.google.common.annotations.VisibleForTesting;
 import org.sonar.api.ServerExtension;
 import org.sonar.api.config.Settings;
 import org.sonar.api.issue.action.Function;
 import org.sonar.plugins.jira.JiraConstants;
-
-import com.atlassian.jira.rest.client.api.domain.BasicIssue;
-import com.google.common.annotations.VisibleForTesting;
+import java.rmi.RemoteException;
 
 public class LinkFunction implements Function, ServerExtension {
 
@@ -72,7 +70,6 @@ public class LinkFunction implements Function, ServerExtension {
 	checkProperty(JiraConstants.JIRA_CRITICAL_PRIORITY_ID, settings);
 	checkProperty(JiraConstants.JIRA_BLOCKER_PRIORITY_ID, settings);
 	checkProperty(JiraConstants.JIRA_ISSUE_TYPE_ID, settings);
-	checkProperty(JiraConstants.JIRA_ISSUE_COMPONENT_ID, settings);
     }
 
     private void checkProperty(String property, Settings settings) {
