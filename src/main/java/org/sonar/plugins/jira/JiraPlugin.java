@@ -24,13 +24,13 @@ import com.google.common.collect.ImmutableList;
 import org.sonar.api.Properties;
 import org.sonar.api.Property;
 import org.sonar.api.SonarPlugin;
+import org.sonar.plugins.jira.metrics.JiraFilterWidget;
 import org.sonar.plugins.jira.metrics.JiraMetrics;
 import org.sonar.plugins.jira.metrics.JiraSensor;
 import org.sonar.plugins.jira.metrics.JiraWidget;
 import org.sonar.plugins.jira.reviews.JiraActionDefinition;
 import org.sonar.plugins.jira.reviews.JiraIssueCreator;
 import org.sonar.plugins.jira.reviews.LinkFunction;
-
 import java.util.List;
 
 @Properties({
@@ -63,7 +63,7 @@ public final class JiraPlugin extends SonarPlugin {
   public List getExtensions() {
     return ImmutableList.of(
       // metrics part
-      JiraMetrics.class, JiraSensor.class, JiraWidget.class,
+      JiraMetrics.class, JiraSensor.class, JiraWidget.class, JiraFilterWidget.class,
 
       // issues part
       JiraIssueCreator.class, LinkFunction.class, JiraActionDefinition.class

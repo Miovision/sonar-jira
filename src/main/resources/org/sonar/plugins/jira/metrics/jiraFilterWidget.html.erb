@@ -1,0 +1,75 @@
+<%
+   chart_title = widget_properties["chart-title"]
+   module_key = widget_properties['module-key']
+   filter_id = widget_properties['filter']
+   filter = MeasureFilter.find_by_id(filter_id.to_i) if filter_id
+   if filter
+     filter.load_criteria_from_data
+     if !filter.require_authentication? || logged_in?
+       filter.execute(self, :user => current_user)
+       if chart_title
+         @widget_title = chart_title
+       else
+         @widget_title = link_to h(filter.name), {:controller => 'measures', :action => 'filter', :id => filter.id}
+       end
+       issuesColumn=nil
+       issuesRow=nil
+       filter.display.columns.each do |column|
+         if column.key=='metric:issues'
+           issuesColumn=column
+           break
+         end
+       end
+       filter.rows.each do |row|
+         if row.snapshot.resource.key==module_key
+           issuesRow=row
+           break
+         end
+       end
+       if issuesColumn
+         if issuesRow
+           issues_measure = issuesRow.measure(issuesColumn.metric)
+           if issues_measure
+%>
+          <div class="yui-g">
+            <div class="yui-u first">
+              <div class="dashbox">
+                <p class="title"><%= message ('widget.jira.jira_issues') -%></p>
+                <span class="big">
+                  <p>
+                    <%= format_measure(issues_measure, {:url => issues_measure.url}) -%>
+                  </p>
+                </span>
+              </div>
+            </div>
+            <div class="yui-u">
+              <div class="dashbox">
+                <p class="title"><%= message('widget.jira.by_priority') -%></p>
+                <table>
+                  <%
+                     issues_measure.text_value.split(";").each do |priority_with_size|
+                       priority_with_size_array = priority_with_size.split("=")
+                       priority = message(priority_with_size_array[0].downcase)
+                       # if no translation can be found, use the provided name
+                       priority = priority_with_size_array[0] unless priority
+                  %>
+                      <tr>
+                        <td align="left">
+                          <%= priority -%>
+                        </td>
+                        <td align="right" style="padding-left: 10px;">
+                          <%= priority_with_size_array[1] -%>
+                        </td>
+                      </tr>
+                  <% end %>
+                </table>
+              </div>
+            </div>
+          </div>
+<%
+        end
+      end
+    end
+  end
+end
+%>
