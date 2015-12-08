@@ -76,7 +76,7 @@ public class JiraSensor implements Sensor {
 	if (missingMandatoryParameters()) {
 	    LOG.info("JIRA issues sensor will not run as some parameters are missing.");
 	}
-	return project.isRoot() && !missingMandatoryParameters();
+	return !missingMandatoryParameters();
     }
 
     public void analyse(Project project, SensorContext context) {
@@ -97,7 +97,6 @@ public class JiraSensor implements Sensor {
 	}
 
 	JiraRestClient service = session.getJiraRestClient();
-	// String authToken = session.getAuthenticationToken();
 
 	try {
 	    runAnalysis(context, service);
