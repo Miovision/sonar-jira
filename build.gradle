@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        maven { url 'https://plugins.gradle.org/m2/' }
+        maven { url 'http://jcenter.bintray.com' }
+        mavenCentral()
+    }
+}
+
+plugins {
+    id "com.jfrog.bintray" version "1.4"
+    id "com.iadams.sonar-packaging" version "0.1.3"
+}
+
+apply plugin: 'java'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'maven-publish'
+apply plugin: 'com.iadams.sonar-packaging'
+
+group = 'org.codehaus.sonar-plugins'
+version = '1.3.SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://m2proxy.atlassian.com/repository/public' }
+}
+
+dependencies {
+    provided "org.codehaus.sonar:sonar-plugin-api:$SONAR_VERSION"
+    compile "com.atlassian.jira:jira-rest-java-client-api:2.0.0-m25"
+    compile "com.atlassian.jira:jira-rest-java-client-core:2.0.0-m25"
+}
+
+sonarPackaging {
+    pluginClass = "org.sonar.plugins.jira.JiraPlugin"
+    pluginKey = "jira"
+    pluginName = "Sonar JIRA Plugin"
+    pluginDescription = "Connects SonarQube to Atlassian JIRA in various ways."
+    pluginUrl = "http://docs.codehaus.org/display/SONAR/Jira+Plugin"
+}
