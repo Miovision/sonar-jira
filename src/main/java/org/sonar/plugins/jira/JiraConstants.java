@@ -53,4 +53,6 @@ public final class JiraConstants {
     public static final String JIRA_ISSUE_TYPE_ID = "sonar.jira.issue.type.id";
 
     public static final String JIRA_ISSUE_COMPONENT_ID = "sonar.jira.issue.component.id";
+
+    public static final String JIRA_TOP_LEVEL_PACKAGE = "sonar.jira.package";
 }

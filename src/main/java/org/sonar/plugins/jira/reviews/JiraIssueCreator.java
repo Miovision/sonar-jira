@@ -160,9 +160,9 @@ public class JiraIssueCreator implements ServerExtension {
 
     protected IssueInput initRemoteIssue(Issue sonarIssue, Settings settings,
 	    IssueRestClient issueClient, ProjectRestClient prjClient) {
-
+	String jiraProjectKey = getJiraProjectKey(settings, sonarIssue.projectKey(), sonarIssue.componentKey());
 	IssueInputBuilder builder = new IssueInputBuilder(
-		settings.getString(JiraConstants.JIRA_PROJECT_KEY_PROPERTY),
+		jiraProjectKey,
 		settings.getLong(JiraConstants.JIRA_ISSUE_TYPE_ID),
 		generateIssueSummary(sonarIssue));
 	builder.setPriorityId(sonarSeverityToJiraPriorityId(
@@ -195,7 +195,50 @@ public class JiraIssueCreator implements ServerExtension {
 	return builder.build();
     }
 
-    protected String generateIssueSummary(Issue sonarIssue) {
+	private String getJiraProjectKey(Settings settings, String projectKey, String componentKey) {
+		final String topLevelPackage = settings.getString(JiraConstants.JIRA_TOP_LEVEL_PACKAGE + "." + projectKey);
+		if (topLevelPackage != null) {
+			componentKey = convertComponentKey(projectKey, componentKey, topLevelPackage);
+			String jiraProjectKey = findJiraProjectKey(settings, componentKey);
+			if (jiraProjectKey != null) {
+				return jiraProjectKey;
+			}
+		}
+		return settings.getString(JiraConstants.JIRA_PROJECT_KEY_PROPERTY);
+	}
+
+	private String convertComponentKey(String projectKey, String componentKey, String topLevelPackage) {
+		componentKey = removeHeadersFromComponentKey(projectKey, componentKey, topLevelPackage);
+		componentKey = removePathFromComponentKey(componentKey);
+		return componentKey.replaceAll(":", ".");
+	}
+
+	private String findJiraProjectKey(Settings settings, String componentKey) {
+		String settingKey = JiraConstants.JIRA_PROJECT_KEY_PROPERTY + "." + componentKey;
+		String projectKey = settings.getString(settingKey);
+		if (projectKey != null) {
+			return projectKey;
+		}
+		int index = componentKey.lastIndexOf('.');
+		if (index == -1) {
+			return null;
+		}
+		componentKey = componentKey.substring(0, index);
+		return findJiraProjectKey(settings, componentKey);
+	}
+
+	private String removeHeadersFromComponentKey(String projectKey, String componentKey, String topLevelPackage) {
+		componentKey = componentKey.replace(topLevelPackage, "");
+		componentKey = componentKey.replace(projectKey, "");
+		return componentKey.substring(1);
+	}
+
+	private String removePathFromComponentKey(String componentKey) {
+		int index = componentKey.lastIndexOf(':');
+		return componentKey.substring(0, index);
+	}
+
+	protected String generateIssueSummary(Issue sonarIssue) {
 	Rule rule = ruleFinder.findByKey(sonarIssue.ruleKey());
 
 	StringBuilder summary = new StringBuilder("Sonar Issue #");
