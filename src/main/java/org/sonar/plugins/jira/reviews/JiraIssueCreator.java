@@ -208,7 +208,7 @@ public class JiraIssueCreator implements ServerExtension {
 	}
 
 	private String convertComponentKey(String projectKey, String componentKey, String topLevelPackage) {
-		componentKey = removeHeadersFromComponentKey(projectKey, componentKey, topLevelPackage);
+		componentKey = componentKey.replace(topLevelPackage, projectKey);
 		componentKey = removePathFromComponentKey(componentKey);
 		return componentKey.replaceAll(":", ".");
 	}
@@ -225,12 +225,6 @@ public class JiraIssueCreator implements ServerExtension {
 		}
 		componentKey = componentKey.substring(0, index);
 		return findJiraProjectKey(settings, componentKey);
-	}
-
-	private String removeHeadersFromComponentKey(String projectKey, String componentKey, String topLevelPackage) {
-		componentKey = componentKey.replace(topLevelPackage, "");
-		componentKey = componentKey.replace(projectKey, "");
-		return componentKey.substring(1);
 	}
 
 	private String removePathFromComponentKey(String componentKey) {
