@@ -17,7 +17,7 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.iadams.sonar-packaging'
 
 group = 'org.codehaus.sonar-plugins'
-version = '1.3.SNAPSHOT'
+version = '1.3.mio'
 
 repositories {
     mavenCentral()
@@ -36,4 +36,86 @@ sonarPackaging {
     pluginName = "Sonar JIRA Plugin"
     pluginDescription = "Connects SonarQube to Atlassian JIRA in various ways."
     pluginUrl = "http://docs.codehaus.org/display/SONAR/Jira+Plugin"
+}
+
+artifacts {
+    archives pluginPackaging
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'sonar-jira'
+            artifact pluginPackaging
+
+            pom {
+                packaging = 'sonar-plugin'
+                withXml {
+                    def root = asNode()
+                    root.appendNode('name', 'Sonar JIRA Plugin')
+                    root.appendNode('description', 'Connects SonarQube to Atlassian JIRA in various ways.')
+                    root.appendNode('url', 'https://github.com/Miovision/sonar-jira')
+
+                    def scm = root.appendNode('scm')
+                    scm.appendNode('url', 'https://github.com/Miovision/sonar-jira')
+                    scm.appendNode('connection', 'scm:https://github.com/Miovision/sonar-jira.git')
+                    scm.appendNode('developerConnection', 'scm:git://github.com/Miovision/sonar-jira.git')
+
+                    def license = root.appendNode('licenses').appendNode('license')
+                    license.appendNode('name', 'GNU LGPL 3')
+                    license.appendNode('url', 'http://www.gnu.org/licenses/lgpl.txt')
+                    license.appendNode('distribution', 'repo')
+
+                    def developers = root.appendNode('developers')
+                    def lancelot = developers.appendNode('developer')
+                    lancelot.appendNode('id', 'julien.lancelot')
+                    lancelot.appendNode('name', 'Julien Lancelot')
+
+                    def munger = developers.appendNode('developer')
+                    munger.appendNode('id', 'cedric.munger')
+                    munger.appendNode('name', 'Cédric Munger')
+
+                    def mandrikov = developers.appendNode('developer')
+                    mandrikov.appendNode('id', 'godin')
+                    mandrikov.appendNode('name', 'Evgeny Mandrikov')
+
+                    def bellingard = developers.appendNode('developer')
+                    bellingard.appendNode('id', 'fabemn')
+                    bellingard.appendNode('name', 'Fabrice Bellingard')
+
+                    def henry = developers.appendNode('developer')
+                    henry.appendNode('id', 'henryju')
+                    henry.appendNode('name', 'Julien Henry')
+
+                    def kowpak = developers.appendNode('developer')
+                    kowpak.appendNode('id', 'akowpak-miovision')
+                    kowpak.appendNode('name', 'Andrew Kowpak')
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.getProperty('bintrayUser') : null
+    key =  project.hasProperty('bintrayKey') ? project.getProperty('bintrayKey') : null
+    publications = ['mavenJava']
+
+    pkg {
+        repo = 'maven'
+        name = 'sonar-jira'
+        desc = 'Connects SonarQube to Atlassian JIRA in various ways.'
+        userOrg = project.hasProperty('bintrayOrg') ? project.getProperty('bintrayOrg') : null
+        licenses = ['LGPL-3.0']
+        vcsUrl = "https://github.com/Miovision/sonar-jira.git"
+        websiteUrl = "https://github.com/Miovision/sonar-jira"
+        issueTrackerUrl = "https://github.com/Miovision/sonar-jira/issues"
+        labels = ['sonar', 'jira']
+        publicDownloadNumbers = true
+
+        version {
+            name = "$project.version"
+            vcsTag = "$project.version"
+        }
+    }
 }
